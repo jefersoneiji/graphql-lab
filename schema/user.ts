@@ -11,9 +11,9 @@ const user_ref = builder.objectRef<user_interface>('user');
 user_ref.implement({
     description: 'system user',
     fields: t => ({
-        name: t.exposeString('name', { nullable: false }),
-        email: t.exposeString('email', { nullable: false }),
-        password: t.exposeString('password')
+        name: t.exposeString('name', { nullable: false, description: 'user name' }),
+        email: t.exposeString('email', { nullable: false, description: 'user e-mail' }),
+        password: t.exposeString('password', { nullable: false, description: 'user password' })
     })
 });
 
@@ -35,8 +35,8 @@ const public_user_ref = builder.objectRef<Omit<user_interface, 'password'>>('pub
 public_user_ref.implement({
     description: 'public user',
     fields: t => ({
-        name: t.exposeString('name', { nullable: false }),
-        email: t.exposeString('email', { nullable: false }),
+        name: t.exposeString('name', { nullable: false, description: 'user name' }),
+        email: t.exposeString('email', { nullable: false, description: 'user e-mail' }),
     })
 });
 

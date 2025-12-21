@@ -1,4 +1,5 @@
 import './user';
+import './post';
 
 import { builder } from '../builder';
 
