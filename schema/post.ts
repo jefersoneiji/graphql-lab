@@ -30,7 +30,22 @@ builder.queryField('post', t =>
     })
 );
 
-builder.mutationField('create_post', t =>
+builder.queryField('posts', t =>
+    t.field({
+        type: [post_ref],
+        resolve: () => {
+            return [
+                {
+                    title: 'Jeferson',
+                    link: 'jeferson@email.com',
+                    author: '123456'
+                }
+            ];
+        }
+    })
+);
+
+builder.mutationField('post', t =>
     t.field({
         type: post_ref,
         args: {
@@ -38,7 +53,7 @@ builder.mutationField('create_post', t =>
             link: t.arg.string({ required: true }),
             author: t.arg.string({ required: true })
         },
-        resolve: (parent, args, ctx) => {
+        resolve: (_, args, _ctx) => {
             return {
                 title: args.title,
                 link: args.link,
