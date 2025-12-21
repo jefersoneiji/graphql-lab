@@ -1,13 +1,13 @@
 {
   "name": "graphql-lab",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "bun server.ts"
+    "dev": "bun --watch server.ts"
   },
   "keywords": [],
-  "author": "",
+  "author": "Jeferson Eiji",
   "license": "ISC",
   "packageManager": "pnpm@10.20.0",
   "dependencies": {
