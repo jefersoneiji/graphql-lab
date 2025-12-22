@@ -8,6 +8,7 @@ export interface post_interface {
     title: string;
     link: string;
     author: string;
+    created_at: Date;
 }
 
 const post_ref = builder.objectRef<post_interface>('post');
@@ -17,7 +18,8 @@ post_ref.implement({
     fields: t => ({
         title: t.exposeString('title', { nullable: false, description: 'post title' }),
         link: t.exposeString('link', { nullable: false, description: 'post link' }),
-        author: t.exposeID('author', { description: 'post author id' })
+        author: t.exposeID('author', { description: 'post author id' }),
+        created_at: t.expose('created_at', { type: 'Date', nullable: false })
     })
 });
 
@@ -69,12 +71,14 @@ builder.mutationField('post', t =>
             const user_found = await user.findOne({ _id: args.author });
             if (!user_found) throw createGraphQLError('Author not found.', { extensions: { http: { status: 404 } } });
 
-            await post.build({ title, link, author }).save();
+            const now = new Date();
+            await post.build({ title, link, author, created_at: now }).save();
 
             return {
                 title: args.title,
                 link: args.link,
-                author: args.author
+                author: args.author,
+                created_at: now
             };
         }
     })

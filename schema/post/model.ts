@@ -9,12 +9,14 @@ interface post_doc extends mongoose.Document {
     title: string;
     link: string;
     author: string;
+    created_at: Date;
 }
 
 const post_schema = new mongoose.Schema({
     title: { type: String, required: true },
-    link: { type: String, required: true, unique: true },
+    link: { type: String, required: true },
     author: { type: String, required: true },
+    created_at: { type: Date, required: true },
 }, {
     toJSON: {
         transform(_doc, ret) {
