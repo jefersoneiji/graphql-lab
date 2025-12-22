@@ -24,12 +24,18 @@ post_ref.implement({
 builder.queryField('post', t =>
     t.field({
         type: post_ref,
-        resolve: () => {
-            return {
-                title: 'Jeferson',
-                link: 'jeferson@email.com',
-                author: '123456'
-            };
+        description: 'retrieves post by id',
+        args: {
+            post_id: t.arg.id({ description: 'post id', required: true })
+        },
+        resolve: async (_parent, args, _ctx) => {
+            const id_checked = mongoose.isValidObjectId(args.post_id);
+            if (!id_checked) throw createGraphQLError('Invalid post id.', { extensions: { http: { status: 400 } } });
+
+            const post_found = await post.findOne({ _id: args.post_id });
+            if (!post_found) throw createGraphQLError('Post not found.', { extensions: { http: { status: 404 } } });
+
+            return await post.findById(args.post_id);
         }
     })
 );
@@ -37,14 +43,9 @@ builder.queryField('post', t =>
 builder.queryField('posts', t =>
     t.field({
         type: [post_ref],
-        resolve: () => {
-            return [
-                {
-                    title: 'Jeferson',
-                    link: 'jeferson@email.com',
-                    author: '123456'
-                }
-            ];
+        description: 'retrieves all posts',
+        resolve: async () => {
+            return await post.find();
         }
     })
 );
@@ -52,6 +53,8 @@ builder.queryField('posts', t =>
 builder.mutationField('post', t =>
     t.field({
         type: post_ref,
+        nullable: false,
+        description: 'creates post',
         args: {
             title: t.arg.string({ required: true }),
             link: t.arg.string({ required: true }),
@@ -60,7 +63,7 @@ builder.mutationField('post', t =>
         resolve: async (_, args, _ctx) => {
             const { title, link, author } = args;
 
-            const id_checked = mongoose.isValidObjectId(args.author)
+            const id_checked = mongoose.isValidObjectId(args.author);
             if (!id_checked) throw createGraphQLError('Invalid author id.', { extensions: { http: { status: 400 } } });
 
             const user_found = await user.findOne({ _id: args.author });
