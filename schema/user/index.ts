@@ -1,6 +1,8 @@
-import { builder } from "../builder";
+import { createGraphQLError } from "graphql-yoga";
+import { builder } from "../../builder";
+import { user } from "./model";
 
-interface user_interface {
+export interface user_interface {
     name: string;
     email: string;
     password: string;
@@ -48,7 +50,14 @@ builder.mutationField('create_user', t =>
             email: t.arg.string({ required: true }),
             password: t.arg.string({ required: true })
         },
-        resolve: (parent, args, ctx) => {
+        resolve: async (_parent, args, _ctx) => {
+            const { name, email, password } = args;
+
+            const email_found = await user.findOne({ email });
+            if (email_found) throw createGraphQLError('E-mail already used', { extensions: { http: { status: 400 } } });
+
+            await user.build({ name, email, password }).save();
+
             return {
                 name: args.name,
                 email: args.email
