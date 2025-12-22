@@ -1,6 +1,10 @@
-import { builder } from "../builder";
+import { builder } from "../../builder";
+import { post } from "./model";
+import { user } from "../user/model";
+import { createGraphQLError } from "graphql-yoga";
+import mongoose from "mongoose";
 
-interface post_interface {
+export interface post_interface {
     title: string;
     link: string;
     author: string;
@@ -53,7 +57,17 @@ builder.mutationField('post', t =>
             link: t.arg.string({ required: true }),
             author: t.arg.string({ required: true })
         },
-        resolve: (_, args, _ctx) => {
+        resolve: async (_, args, _ctx) => {
+            const { title, link, author } = args;
+
+            const id_checked = mongoose.isValidObjectId(args.author)
+            if (!id_checked) throw createGraphQLError('Invalid author id.', { extensions: { http: { status: 400 } } });
+
+            const user_found = await user.findOne({ _id: args.author });
+            if (!user_found) throw createGraphQLError('Author not found.', { extensions: { http: { status: 404 } } });
+
+            await post.build({ title, link, author }).save();
+
             return {
                 title: args.title,
                 link: args.link,
