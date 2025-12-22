@@ -21,13 +21,17 @@ user_ref.implement({
 
 builder.queryField('user', t =>
     t.field({
-        type: user_ref,
-        resolve: () => {
-            return {
-                name: 'Jeferson',
-                email: 'jeferson@email.com',
-                password: '123456'
-            };
+        type: public_user_ref,
+        args: {
+            email: t.arg.string({ required: true })
+        },
+        resolve: async (_parent, args, _ctx) => {
+            const { email } = args;
+            const user_found = await user.findOne({ email });
+            
+            if (!user_found) throw createGraphQLError('User not found.', { extensions: { http: { status: 404 } } });
+
+            return user_found
         }
     })
 );

@@ -20,8 +20,14 @@ const user_schema = new mongoose.Schema({
         transform(_doc, ret) {
             const { _id, password, __v, ...clean } = ret;
             return clean;
-        }
-    }
+        },
+    },
+    toObject: {
+        transform(_doc, ret) {
+            const { _id, password, __v, ...clean } = ret;
+            return clean;
+        },
+    },
 });
 
 user_schema.statics.build = (attrs: user_interface) => {
