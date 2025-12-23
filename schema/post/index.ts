@@ -5,6 +5,7 @@ import { user_interface, user_ref } from "../user";
 import { builder } from "../../builder";
 import { user } from "../user/model";
 import { post } from "./model";
+import { title } from "node:process";
 
 export interface post_interface {
     id: string;
@@ -16,10 +17,11 @@ export interface post_interface {
 
 const post_ref = builder.objectRef<post_interface>('post');
 
-post_ref.implement({
-    description: 'post',
+builder.node(post_ref, {
+    id: {
+        resolve: post => post.id
+    },
     fields: t => ({
-        id: t.exposeID('id', { description: 'post id', nullable: false }),
         title: t.exposeString('title', { nullable: false, description: 'post title' }),
         link: t.exposeString('link', { nullable: false, description: 'post link' }),
         author: t.field({
