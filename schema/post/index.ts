@@ -7,6 +7,7 @@ import { user } from "../user/model";
 import { post } from "./model";
 
 export interface post_interface {
+    id: string;
     title: string;
     link: string;
     author: string;
@@ -18,11 +19,12 @@ const post_ref = builder.objectRef<post_interface>('post');
 post_ref.implement({
     description: 'post',
     fields: t => ({
+        id: t.exposeID('id', { description: 'post id', nullable: false }),
         title: t.exposeString('title', { nullable: false, description: 'post title' }),
         link: t.exposeString('link', { nullable: false, description: 'post link' }),
         author: t.field({
             type: user_ref,
-            nullable: false, 
+            nullable: false,
             resolve: async (post, _args, _ctx) => {
                 return await user.findById(post.author) as user_interface;
             }
@@ -80,9 +82,10 @@ builder.mutationField('post', t =>
             if (!user_found) throw createGraphQLError('Author not found.', { extensions: { http: { status: 404 } } });
 
             const now = new Date();
-            await post.build({ title, link, author, created_at: now }).save();
+            const created_post = await post.build({ title, link, author, created_at: now }).save();
 
             return {
+                id: created_post.id,
                 title: args.title,
                 link: args.link,
                 author: args.author,

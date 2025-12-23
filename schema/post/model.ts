@@ -2,10 +2,11 @@ import mongoose from "mongoose";
 import { post_interface } from ".";
 
 interface post_model extends mongoose.Model<post_doc> {
-    build(attrs: post_interface): post_doc;
+    build(attrs: Omit<post_interface, 'id'>): post_doc;
 }
 
 interface post_doc extends mongoose.Document {
+    id: string, 
     title: string;
     link: string;
     author: string;
@@ -21,13 +22,13 @@ const post_schema = new mongoose.Schema({
     toJSON: {
         transform(_doc, ret) {
             const { _id, __v, ...clean } = ret;
-            return clean;
+            return { id: _id, ...clean };
         },
     },
     toObject: {
         transform(_doc, ret) {
             const { _id, __v, ...clean } = ret;
-            return clean;
+            return { id: _id, ...clean };
         },
     },
 });
