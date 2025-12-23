@@ -21,6 +21,8 @@ builder.node(post_ref, {
     id: {
         resolve: post => post.id
     },
+    loadOne: async (id) => await post.findById(id),
+    loadMany: async (ids) => await post.find({ _id: { $in: ids } }),
     fields: t => ({
         title: t.exposeString('title', { nullable: false, description: 'post title' }),
         link: t.exposeString('link', { nullable: false, description: 'post link' }),
