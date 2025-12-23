@@ -8,7 +8,7 @@ export interface user_interface {
     password: string;
 }
 
-const user_ref = builder.objectRef<user_interface>('user');
+export const user_ref = builder.objectRef<user_interface>('user');
 
 user_ref.implement({
     description: 'system user',

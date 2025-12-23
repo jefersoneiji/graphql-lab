@@ -1,8 +1,10 @@
-import { builder } from "../../builder";
-import { post } from "./model";
-import { user } from "../user/model";
 import { createGraphQLError } from "graphql-yoga";
 import mongoose from "mongoose";
+
+import { user_interface, user_ref } from "../user";
+import { builder } from "../../builder";
+import { user } from "../user/model";
+import { post } from "./model";
 
 export interface post_interface {
     title: string;
@@ -18,7 +20,13 @@ post_ref.implement({
     fields: t => ({
         title: t.exposeString('title', { nullable: false, description: 'post title' }),
         link: t.exposeString('link', { nullable: false, description: 'post link' }),
-        author: t.exposeID('author', { description: 'post author id' }),
+        author: t.field({
+            type: user_ref,
+            nullable: false, 
+            resolve: async (post, _args, _ctx) => {
+                return await user.findById(post.author) as user_interface;
+            }
+        }),
         created_at: t.expose('created_at', { type: 'Date', nullable: false })
     })
 });
