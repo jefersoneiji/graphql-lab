@@ -1,6 +1,6 @@
 import SchemaBuilder from "@pothos/core";
 import RelayPlugin from "@pothos/plugin-relay";
-import { DateResolver } from "graphql-scalars";
+import { DateTimeResolver } from "graphql-scalars";
 
 interface builder {
     Scalars: {
@@ -12,7 +12,7 @@ interface builder {
 }
 export const builder = new SchemaBuilder<builder>({
     plugins: [RelayPlugin],
-    relay:{}
+    relay: {}
 });
 
-builder.addScalarType('Date', DateResolver);
+builder.addScalarType('Date', DateTimeResolver);
