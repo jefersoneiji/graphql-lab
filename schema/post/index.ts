@@ -5,7 +5,6 @@ import { user_interface, user_ref } from "../user";
 import { builder } from "../../builder";
 import { user } from "../user/model";
 import { post } from "./model";
-import { title } from "node:process";
 
 export interface post_interface {
     id: string;
@@ -29,9 +28,7 @@ builder.node(post_ref, {
         author: t.field({
             type: user_ref,
             nullable: false,
-            resolve: async (post, _args, _ctx) => {
-                return await user.findById(post.author) as user_interface;
-            }
+            resolve: async (post, _args, _ctx) => await user.findById(post.author) as user_interface
         }),
         created_at: t.expose('created_at', { type: 'Date', nullable: false })
     })

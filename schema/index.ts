@@ -1,5 +1,6 @@
 import './user';
 import './post';
+import './comment';
 
 import { builder } from '../builder';
 
