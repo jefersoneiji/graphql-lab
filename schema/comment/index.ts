@@ -1,7 +1,11 @@
 import { createGraphQLError } from "graphql-yoga";
+
+import { public_user_ref, user_interface } from "../user";
 import { builder } from "../../builder";
-import { comment } from "./model";
 import { post } from "../post/model";
+import { user } from "../user/model";
+import { comment } from "./model";
+import { post_interface, post_ref } from "../post";
 
 export interface comment_interface {
     author: string;
@@ -15,8 +19,18 @@ export const comment_ref = builder.objectRef<comment_interface>('comment');
 comment_ref.implement({
     description: 'post comment',
     fields: t => ({
-        author: t.exposeString('author', { nullable: false, description: 'author id' }),
-        post: t.exposeString('post', { nullable: false, description: 'post id' }),
+        author: t.field({
+            type: public_user_ref,
+            nullable: false,
+            description: 'comment author',
+            resolve: async (comment, _args, _ctx) => await user.findById(comment.author) as user_interface
+        }),
+        post: t.field({
+            type: post_ref,
+            nullable: false,
+            description: 'post',
+            resolve: async (comment, _args, _ctx) => await post.findById(comment.post) as post_interface
+        }),
         content: t.exposeString('content', { nullable: false, description: 'comment content' }),
         created_at: t.expose('created_at', { type: 'Date', nullable: false, description: 'created at timestamp' })
     })

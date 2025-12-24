@@ -1,7 +1,7 @@
 import { createGraphQLError } from "graphql-yoga";
 import mongoose from "mongoose";
 
-import { user_interface, user_ref } from "../user";
+import { public_user_ref, user_interface } from "../user";
 import { builder } from "../../builder";
 import { user } from "../user/model";
 import { post } from "./model";
@@ -14,7 +14,7 @@ export interface post_interface {
     created_at: Date;
 }
 
-const post_ref = builder.objectRef<post_interface>('post');
+export const post_ref = builder.objectRef<post_interface>('post');
 
 builder.node(post_ref, {
     id: {
@@ -26,7 +26,7 @@ builder.node(post_ref, {
         title: t.exposeString('title', { nullable: false, description: 'post title' }),
         link: t.exposeString('link', { nullable: false, description: 'post link' }),
         author: t.field({
-            type: user_ref,
+            type: public_user_ref,
             nullable: false,
             resolve: async (post, _args, _ctx) => await user.findById(post.author) as user_interface
         }),

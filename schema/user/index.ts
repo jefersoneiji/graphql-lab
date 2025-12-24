@@ -36,7 +36,7 @@ builder.queryField('user', t =>
     })
 );
 
-const public_user_ref = builder.objectRef<Omit<user_interface, 'password'>>('public_user');
+export const public_user_ref = builder.objectRef<Omit<user_interface, 'password'>>('public_user');
 
 public_user_ref.implement({
     description: 'public user',
