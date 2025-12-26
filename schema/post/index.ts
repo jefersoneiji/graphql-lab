@@ -1,11 +1,15 @@
 import { createGraphQLError } from "graphql-yoga";
 import mongoose from "mongoose";
 
+import { comment_interface, comment_ref } from "../comment";
 import { public_user_ref, user_interface } from "../user";
+import { comment } from "../comment/model";
 import { builder } from "../../builder";
 import { user } from "../user/model";
 import { post } from "./model";
 
+// ADD COMMENTS TO POST
+// ADD PAGINATION TO COMMENTS?
 export interface post_interface {
     id: string;
     title: string;
@@ -30,6 +34,11 @@ builder.node(post_ref, {
             nullable: false,
             resolve: async (post, _args, _ctx) => await user.findById(post.author) as user_interface
         }),
+        comments: t.field({
+            type: [comment_ref],
+            nullable: false,
+            resolve: async (post, _args, _ctx) => await comment.find({ post: post.id }) as [comment_interface] | []
+        }),
         created_at: t.expose('created_at', { type: 'Date', nullable: false })
     })
 });
@@ -39,16 +48,18 @@ builder.queryField('post', t =>
         type: post_ref,
         description: 'retrieves post by id',
         args: {
-            post_id: t.arg.id({ description: 'post id', required: true })
+            post_id: t.arg.globalID({ description: 'post id', required: true })
         },
         resolve: async (_parent, args, _ctx) => {
-            const id_checked = mongoose.isValidObjectId(args.post_id);
+            const { post_id: { id } } = args;
+
+            const id_checked = mongoose.isValidObjectId(id);
             if (!id_checked) throw createGraphQLError('Invalid post id.', { extensions: { http: { status: 400 } } });
 
-            const post_found = await post.findOne({ _id: args.post_id });
+            const post_found = await post.findOne({ _id: id });
             if (!post_found) throw createGraphQLError('Post not found.', { extensions: { http: { status: 404 } } });
 
-            return await post.findById(args.post_id);
+            return await post.findById(id);
         }
     })
 );
@@ -83,15 +94,7 @@ builder.mutationField('post', t =>
             if (!user_found) throw createGraphQLError('Author not found.', { extensions: { http: { status: 404 } } });
 
             const now = new Date();
-            const created_post = await post.build({ title, link, author, created_at: now }).save();
-
-            return {
-                id: created_post.id,
-                title: args.title,
-                link: args.link,
-                author: args.author,
-                created_at: now
-            };
+            return await post.build({ title, link, author, created_at: now }).save();
         }
     })
 );
