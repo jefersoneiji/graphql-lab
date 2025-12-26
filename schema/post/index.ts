@@ -1,3 +1,4 @@
+import { resolveCursorConnection } from "@pothos/plugin-relay";
 import { createGraphQLError } from "graphql-yoga";
 import mongoose from "mongoose";
 
@@ -8,8 +9,8 @@ import { builder } from "../../builder";
 import { user } from "../user/model";
 import { post } from "./model";
 
-// ADD COMMENTS TO POST
 // ADD PAGINATION TO COMMENTS?
+// IMPLEMENT THE AFTER, BEFORE, FIRST, LAST AND SORT FIELDS TO DB QUERY
 export interface post_interface {
     id: string;
     title: string;
@@ -65,11 +66,13 @@ builder.queryField('post', t =>
 );
 
 builder.queryField('posts', t =>
-    t.field({
-        type: [post_ref],
+    t.connection({
+        type: post_ref,
         description: 'retrieves all posts',
-        resolve: async () => {
-            return await post.find();
+        resolve: async (_parent, args) => {
+            const posts = await post.find();
+            const result = await resolveCursorConnection({ args, toCursor: post => btoa(post.id) }, async () => posts);
+            return { ...result, totalCount: posts.length };
         }
     })
 );

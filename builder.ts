@@ -3,6 +3,9 @@ import RelayPlugin from "@pothos/plugin-relay";
 import { DateTimeResolver } from "graphql-scalars";
 
 interface builder {
+    Connection: {
+        totalCount: number;
+    },
     Scalars: {
         Date: {
             Input: Date;
@@ -16,3 +19,10 @@ export const builder = new SchemaBuilder<builder>({
 });
 
 builder.addScalarType('Date', DateTimeResolver);
+
+builder.globalConnectionField('totalCount', t =>
+    t.int({
+        nullable: false,
+        resolve: parent => parent.totalCount
+    })
+);

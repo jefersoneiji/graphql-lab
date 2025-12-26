@@ -17,7 +17,6 @@ export interface comment_interface {
 export const comment_ref = builder.objectRef<comment_interface>('comment');
 
 // REPLY TO COMMENT FEATURE
-// PAGINATION TO POSTS?
 // PAGINATION TO COMMENTS?
 comment_ref.implement({
     description: 'post comment',
