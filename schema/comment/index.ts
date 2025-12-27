@@ -1,11 +1,11 @@
 import { createGraphQLError } from "graphql-yoga";
 
 import { public_user_ref, user_interface } from "../user";
+import { post_interface, post_ref } from "../post";
 import { builder } from "../../builder";
 import { post } from "../post/model";
 import { user } from "../user/model";
 import { comment } from "./model";
-import { post_interface, post_ref } from "../post";
 
 export interface comment_interface {
     author: string;
@@ -17,7 +17,6 @@ export interface comment_interface {
 export const comment_ref = builder.objectRef<comment_interface>('comment');
 
 // REPLY TO COMMENT FEATURE
-// PAGINATION TO COMMENTS?
 comment_ref.implement({
     description: 'post comment',
     fields: t => ({

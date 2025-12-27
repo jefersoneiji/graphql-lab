@@ -9,7 +9,6 @@ import { builder } from "../../builder";
 import { user } from "../user/model";
 import { post } from "./model";
 
-// ADD PAGINATION TO COMMENTS?
 // IMPLEMENT THE AFTER, BEFORE, FIRST, LAST AND SORT FIELDS TO DB QUERY
 export interface post_interface {
     id: string;
