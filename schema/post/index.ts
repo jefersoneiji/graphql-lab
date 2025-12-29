@@ -2,24 +2,12 @@ import { resolveCursorConnection } from "@pothos/plugin-relay";
 import { createGraphQLError } from "graphql-yoga";
 import mongoose from "mongoose";
 
-import { comment_interface, comment_ref } from "../comment";
+import { author_loader, comment_loader } from "./loader";
 import { public_user_ref, user_interface } from "../user";
-import { comment } from "../comment/model";
+import { comment_ref } from "../comment";
 import { builder } from "../../builder";
 import { user } from "../user/model";
 import { post } from "./model";
-import { author_loader, comment_loader } from "./loader";
-
-function create_query_counter() {
-    let queryCount = 0;
-    return {
-        increment() { queryCount++; },
-        getCount() { return queryCount; },
-        reset() { queryCount = 0; }
-    };
-}
-
-export const query_counter = create_query_counter();
 
 // IMPLEMENT THE AFTER, BEFORE, FIRST, LAST AND SORT FIELDS TO DB QUERY
 export interface post_interface {
@@ -44,22 +32,12 @@ builder.node(post_ref, {
         author: t.field({
             type: public_user_ref,
             nullable: false,
-            resolve: async (post, _args, _ctx) => {
-                query_counter.increment();
-                console.log('QUERY COUNTER INSIDE "AUTHOR FIELD" IS: ', query_counter.getCount());
-                // return await user.findById(post.author) as user_interface;
-                const author = author_loader.load(post.author);
-                return author as Promise<user_interface>;
-            }
+            resolve: async (post, _args, _ctx) => author_loader.load(post.author) as Promise<user_interface>
         }),
         comments: t.field({
             type: [comment_ref],
             nullable: false,
-            resolve: async (post, _args, _ctx) => {
-                query_counter.increment();
-                console.log('QUERY COUNTER INSIDE "COMMENTS" IS: ', query_counter.getCount());
-                return comment_loader.load(post.id);
-            }
+            resolve: async (post, _args, _ctx) => comment_loader.load(post.id)
         }),
         created_at: t.expose('created_at', { type: 'Date', nullable: false })
     })
@@ -92,10 +70,6 @@ builder.queryField('posts', t =>
         description: 'retrieves all posts',
         resolve: async (_parent, args) => {
             const posts = await post.find();
-            query_counter.reset();
-            query_counter.increment();
-            console.log(' ');
-            console.log(`QUERY COUNTER IN "MAIN QUERY" IS: `, query_counter.getCount());
             const result = await resolveCursorConnection({ args, toCursor: post => btoa(post.id) }, async () => posts);
             return { ...result, totalCount: posts.length };
         }

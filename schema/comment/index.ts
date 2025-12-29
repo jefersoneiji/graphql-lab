@@ -1,10 +1,10 @@
 import { createGraphQLError } from "graphql-yoga";
 
 import { public_user_ref, user_interface } from "../user";
-import { post_interface, post_ref, query_counter } from "../post";
+import { post_interface, post_ref } from "../post";
+import { author_loader } from "./loader";
 import { builder } from "../../builder";
 import { post } from "../post/model";
-import { user } from "../user/model";
 import { comment } from "./model";
 
 export interface comment_interface {
@@ -25,12 +25,8 @@ comment_ref.implement({
             nullable: false,
             description: 'comment author',
             resolve: async (comment, _args, _ctx) => {
-                query_counter.increment();
-                console.log('QUERY COUNTER INSIDE "AUTHOR FIELD IN COMMENT SCHEMA" IS: ', query_counter.getCount());
-                // const author_is = author_loader.load(comment.author);
-                // console.log('AUTHOR_IS: ', author_is);
-                // return author_is as Promise<user_interface>;
-                return await user.findById(comment.author) as user_interface
+                const author_is = author_loader.load(comment.author);
+                return author_is as Promise<user_interface>;
             }
         }),
         post: t.field({

@@ -31,21 +31,17 @@ export const author_loader = new DataLoader<string, public_user | null>(key => b
 const batch_comment = async (ids: readonly string[]): Promise<comment_interface[][]> => {
     console.debug(`-> Fetching comments for post with IDs: ${ids.join(', ')}`);
 
-    // GROUP COMMENTS USING AGGREGATION INSTEAD OF THIS QUERY?
-    const docs = await comment.find({ post: { $in: ids as string[] } }).exec();
-    
-    const map = new Map<string, comment_interface[]>();
-    for (const id of ids) map.set(id, []);
+    const ordered_docs = await comment.aggregate([
+        { $match: { post: { $in: ids } } },
+        { $addFields: { "__order": { $indexOfArray: [ids, "$post"] } } },
+        { $unset: ['__v', '_id'] },
+        { $sort: { "__order": 1 } },
+        { $project: { "__order": 0 } },
+        { $group: { _id: "$post", comments: { $push: "$$ROOT" } } },
+        { $project: { _id: 0, comments: "$comments" } },
+    ]).exec();
 
-    for (const doc of docs as comment_interface[]) {
-        const key = String((doc as any).post);
-        const arr = map.get(key) || [];
-        arr.push(doc);
-        map.set(key, arr);
-    }
-    // const mapped = ids.map(id => map.get(id) || []);
-    // console.log('MAPPED COMMENTS ARE: ', mapped);
-    return ids.map(id => map.get(id) || []);
+    return Promise.resolve(ordered_docs.map(elem => elem.comments));
 };
 
 export const comment_loader = new DataLoader<string, comment_interface[]>(keys => batch_comment(keys));
