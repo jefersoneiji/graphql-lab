@@ -1,7 +1,8 @@
 import DataLoader from "dataloader";
+import mongoose from "mongoose";
+
 import { user_interface } from "../user";
 import { user } from "../user/model";
-import mongoose from "mongoose";
 
 type public_user = Omit<user_interface, 'password'>;
 

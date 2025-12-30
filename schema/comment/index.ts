@@ -24,10 +24,7 @@ comment_ref.implement({
             type: public_user_ref,
             nullable: false,
             description: 'comment author',
-            resolve: async (comment, _args, _ctx) => {
-                const author_is = author_loader.load(comment.author);
-                return author_is as Promise<user_interface>;
-            }
+            resolve: async (comment, _args, _ctx) => author_loader.load(comment.author) as Promise<user_interface>
         }),
         post: t.field({
             type: post_ref,
