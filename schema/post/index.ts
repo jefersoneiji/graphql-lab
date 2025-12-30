@@ -9,7 +9,7 @@ import { builder } from "../../builder";
 import { user } from "../user/model";
 import { post } from "./model";
 
-// IMPLEMENT THE AFTER, BEFORE, FIRST, LAST AND SORT FIELDS TO DB QUERY
+// IMPLEMENT THE FIRST, LAST AND SORT FIELDS TO DB QUERY
 export interface post_interface {
     id: string;
     title: string;
@@ -69,7 +69,15 @@ builder.queryField('posts', t =>
         type: post_ref,
         description: 'retrieves all posts',
         resolve: async (_parent, args) => {
-            const posts = await post.find();
+            const query = {
+                ...(args.after && !args.before ? { _id: { $gt: args.after } } : {}),
+                ...(args.before && !args.after ? { _id: { $lt: new mongoose.Types.ObjectId(args.before) } } : {}),
+                ...(args.before && args.after ? { _id: { $lt: args.before, $gt: args.after } } : {})
+            };
+
+            const sort = args.before ? 'desc' : 'asc';
+
+            const posts = await post.find(query).sort({ _id: sort }).exec();
             const result = await resolveCursorConnection({ args, toCursor: post => btoa(post.id) }, async () => posts);
             return { ...result, totalCount: posts.length };
         }
