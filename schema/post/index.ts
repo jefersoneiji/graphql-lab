@@ -64,6 +64,20 @@ builder.queryField('post', t =>
     })
 );
 
+function connection_slice(items: post_interface[], args: Omit<PothosSchemaTypes.DefaultConnectionArguments, 'after' | 'before'>): post_interface[] {
+    const { first, last } = args;
+
+    if (first != null) {
+        return items.slice(0, first);
+    }
+
+    if (last != null) {
+        return items.slice(-last);
+    }
+
+    return items;
+}
+
 builder.queryField('posts', t =>
     t.connection({
         type: post_ref,
@@ -71,15 +85,14 @@ builder.queryField('posts', t =>
         resolve: async (_parent, args) => {
             const query = {
                 ...(args.after && !args.before ? { _id: { $gt: args.after } } : {}),
-                ...(args.before && !args.after ? { _id: { $lt: new mongoose.Types.ObjectId(args.before) } } : {}),
+                ...(args.before && !args.after ? { _id: { $lt: args.before } } : {}),
                 ...(args.before && args.after ? { _id: { $lt: args.before, $gt: args.after } } : {})
             };
 
-            const sort = args.before ? 'desc' : 'asc';
+            const posts = await post.find(query).sort({ _id: 'asc' }).exec();
 
-            const posts = await post.find(query).sort({ _id: sort }).exec();
-            const result = await resolveCursorConnection({ args, toCursor: post => btoa(post.id) }, async () => posts);
-            return { ...result, totalCount: posts.length };
+            const result = await resolveCursorConnection({ args, toCursor: post => btoa(post.id) }, async () => connection_slice(posts, args));
+            return { ...result, totalCount: result.edges.length };
         }
     })
 );
