@@ -9,7 +9,6 @@ import { builder } from "../../builder";
 import { user } from "../user/model";
 import { post } from "./model";
 
-// IMPLEMENT THE FIRST, LAST AND SORT FIELDS TO DB QUERY
 export interface post_interface {
     id: string;
     title: string;
@@ -66,6 +65,10 @@ builder.queryField('post', t =>
 
 function connection_slice(items: post_interface[], args: Omit<PothosSchemaTypes.DefaultConnectionArguments, 'after' | 'before'>): post_interface[] {
     const { first, last } = args;
+
+    if (first != null && last != null) {
+        return items.slice(0, first).slice(-last);
+    }
 
     if (first != null) {
         return items.slice(0, first);
