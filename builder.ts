@@ -1,6 +1,7 @@
 import SchemaBuilder from "@pothos/core";
 import RelayPlugin from "@pothos/plugin-relay";
 import { DateTimeResolver } from "graphql-scalars";
+import { YogaInitialContext } from "graphql-yoga";
 
 interface builder {
     Connection: {
@@ -12,6 +13,7 @@ interface builder {
             Output: Date;
         };
     };
+    Context: YogaInitialContext;
 }
 export const builder = new SchemaBuilder<builder>({
     plugins: [RelayPlugin],

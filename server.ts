@@ -1,9 +1,11 @@
+import { useCookies } from "@whatwg-node/server-plugin-cookies";
 import { createYoga } from "graphql-yoga";
 import { createServer } from 'node:http';
-import { schema } from "./schema";
 import mongoose from "mongoose";
 
-const yoga = createYoga({ schema });
+import { schema } from "./schema";
+
+const yoga = createYoga({ schema, plugins:[useCookies()] });
 
 const server = createServer(yoga);
 

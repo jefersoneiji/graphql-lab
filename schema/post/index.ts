@@ -81,11 +81,23 @@ function connection_slice(items: post_interface[], args: Omit<PothosSchemaTypes.
     return items;
 }
 
+const cookie_list = {
+    name: 'sessionid',
+    value: 'test_value_sessionid_123456',
+    secure: false,
+    sameSite: 'none' as const,
+    domain: null,
+    expires: new Date(Date.now() + 3600 * 1000)
+};
+
 builder.queryField('posts', t =>
     t.connection({
         type: post_ref,
         description: 'retrieves all posts',
-        resolve: async (_parent, args) => {
+        resolve: async (_parent, args, ctx) => {
+            await ctx.request.cookieStore?.get('sessionid');
+            await ctx.request.cookieStore?.set(cookie_list);
+
             const query = {
                 ...(args.after && !args.before ? { _id: { $gt: args.after } } : {}),
                 ...(args.before && !args.after ? { _id: { $lt: args.before } } : {}),
