@@ -84,9 +84,10 @@ function connection_slice(items: post_interface[], args: Omit<PothosSchemaTypes.
 const cookie_list = {
     name: 'sessionid',
     value: 'test_value_sessionid_123456',
-    secure: false,
+    // secure: false,
     sameSite: 'none' as const,
-    domain: null,
+    domain: 'localhost',
+    // httpOnly: false,
     expires: new Date(Date.now() + 3600 * 1000)
 };
 
