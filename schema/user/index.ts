@@ -22,16 +22,15 @@ user_ref.implement({
 builder.queryField('user', t =>
     t.field({
         type: public_user_ref,
+        authScopes: { $any: { user: true, admin: true } },
         args: {
             email: t.arg.string({ required: true })
         },
         resolve: async (_parent, args, _ctx) => {
             const { email } = args;
             const user_found = await user.findOne({ email });
-            
             if (!user_found) throw createGraphQLError('User not found.', { extensions: { http: { status: 404 } } });
-
-            return user_found
+            return user_found;
         }
     })
 );

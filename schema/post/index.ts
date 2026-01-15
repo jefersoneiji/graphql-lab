@@ -1,5 +1,6 @@
 import { resolveCursorConnection } from "@pothos/plugin-relay";
 import { createGraphQLError } from "graphql-yoga";
+import { sign } from 'jsonwebtoken';
 import mongoose from "mongoose";
 
 import { author_loader, comment_loader } from "./loader";
@@ -81,15 +82,15 @@ function connection_slice(items: post_interface[], args: Omit<PothosSchemaTypes.
     return items;
 }
 
-const cookie_list = {
-    name: 'sessionid',
-    value: 'test_value_sessionid_123456',
+const cookie_list = (value: string) => ({
+    name: 'session_id',
+    value,
     // secure: false,
     sameSite: 'none' as const,
     domain: 'localhost',
     // httpOnly: false,
-    expires: new Date(Date.now() + 3600 * 1000)
-};
+    expires: new Date(Date.now() + 3600 * 1000).getTime()
+});
 
 builder.queryField('posts', t =>
     t.connection({
@@ -97,8 +98,10 @@ builder.queryField('posts', t =>
         description: 'retrieves all posts',
         resolve: async (_parent, args, ctx) => {
             await ctx.request.cookieStore?.get('sessionid');
-            await ctx.request.cookieStore?.set(cookie_list);
-
+            const payload = sign({ role: 'role:user', email: "jeferson@email.com" }, 'SUPER_SECRET');
+            
+            await ctx.request.cookieStore?.set(cookie_list(payload));
+            
             const query = {
                 ...(args.after && !args.before ? { _id: { $gt: args.after } } : {}),
                 ...(args.before && !args.after ? { _id: { $lt: args.before } } : {}),

@@ -1,11 +1,39 @@
 import { useCookies } from "@whatwg-node/server-plugin-cookies";
 import { createYoga } from "graphql-yoga";
 import { createServer } from 'node:http';
+import { verify } from "jsonwebtoken";
 import mongoose from "mongoose";
 
+import { user } from "./schema/user/model";
+import { public_user } from "./builder";
 import { schema } from "./schema";
 
-const yoga = createYoga({ schema, plugins:[useCookies()] });
+
+// TODO: STORE ROLE TO EACH USER
+type current_user = public_user & { role: string; };
+
+async function get_user_from_cookie(request: Request): Promise<current_user | null> {
+    const cookie = await request.cookieStore?.get('session_id');
+    if (!cookie) return null;
+
+    // HOW TO HANDLE INVALID JWT?
+    const decoded_jwt = verify(cookie.value, 'SUPER_SECRET') as { role: string, email: string; };
+
+    // HOW TO HANDLE INVALID USER?
+    const retrieved_user = await user.findOne({ email: decoded_jwt.email });
+    if (!retrieved_user) return null;
+
+    return Object.assign({ role: decoded_jwt.role }, retrieved_user.toObject());
+}
+
+const yoga = createYoga({
+    schema,
+    plugins: [useCookies()],
+    context: async (context) => {
+        const user = await get_user_from_cookie(context.request);
+        return { ...context, user };
+    }
+});
 
 const server = createServer(yoga);
 
