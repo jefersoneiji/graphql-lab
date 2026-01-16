@@ -10,13 +10,14 @@ import { schema } from "./schema";
 
 // TODO: CHECK ROLE BEFORE STORING IT
 // TODO: PREVENT UNAUTHORIZED PEOPLE TO ATTRIBUTE ROLE:ADMIN TO THEMSELVES
-// TODO: INVALIDATE COOKIE ON LOGOUT
 // TODO: CHECK IF IT'S NECESSARY TO IMPLEMENT A REFRESH TOKEN
+// TODO: IMPLEMENT JWT INVALIDATION/BLACK LISTING ON LOGOUT
 type current_user = public_user & { role: string; };
 
 async function get_user_from_cookie(request: Request): Promise<current_user | null> {
     const cookie = await request.cookieStore?.get('session_id');
     if (!cookie) return null;
+    if (!cookie.value) return null;
 
     // HOW TO HANDLE INVALID JWT?
     const decoded_jwt = verify(cookie.value, 'SUPER_SECRET') as { role: string, email: string; };

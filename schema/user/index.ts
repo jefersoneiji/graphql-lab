@@ -99,7 +99,7 @@ builder.mutationField('login', t =>
             const { email, password } = args;
             const user_found = await user.findOne({ email });
             if (!user_found) throw createGraphQLError('Invalid credentials.', { extensions: { http: { status: 400 } } });
-            
+
             const password_correct = await compare(password, user_found.password);
             if (!password_correct) throw createGraphQLError('Invalid credentials.', { extensions: { http: { status: 400 } } });
 
@@ -108,6 +108,16 @@ builder.mutationField('login', t =>
             await ctx.request.cookieStore?.set(cookie_fields(payload));
 
             return user_found;
+        }
+    })
+);
+
+builder.mutationField('logout', t =>
+    t.field({
+        type: 'Boolean',
+        resolve: async (_parent, _args, ctx) => {
+            await ctx.request.cookieStore?.delete('session_id');
+            return true;
         }
     })
 );
