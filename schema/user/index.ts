@@ -1,4 +1,6 @@
 import { createGraphQLError } from "graphql-yoga";
+import { hash } from 'bcrypt';
+
 import { builder } from "../../builder";
 import { user } from "./model";
 
@@ -63,7 +65,8 @@ builder.mutationField('create_user', t =>
             const email_found = await user.findOne({ email });
             if (email_found) throw createGraphQLError('E-mail already used', { extensions: { http: { status: 400 } } });
 
-            const new_user = await user.build({ name, email, password, role }).save();
+            const hashed_password = await hash(password, 10);
+            const new_user = await user.build({ name, email, password: hashed_password, role }).save();
 
             return new_user;
         }

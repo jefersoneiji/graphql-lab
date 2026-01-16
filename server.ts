@@ -8,8 +8,6 @@ import { user } from "./schema/user/model";
 import { public_user } from "./builder";
 import { schema } from "./schema";
 
-// TODO: ADD ROLE OPTION TO SIGNUP
-// TODO: HASH PASSWORDS ON SIGNUP
 // TODO: CHECK ROLE BEFORE STORING IT
 // TODO: PREVENT UNAUTHORIZED PEOPLE TO ATTRIBUTE ROLE:ADMIN TO THEMSELVES
 // TODO: GENERATE COOKIE ON SIGNUP 
