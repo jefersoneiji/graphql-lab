@@ -36,9 +36,9 @@ export const builder = new SchemaBuilder<builder>({
     plugins: [RelayPlugin, ScopeAuthPlugin],
     scopeAuth: {
         authScopes: async context => ({
-            guest: !context.user,
-            user: context.user?.role === "role:user",
-            admin: context.user?.role === "role:admin",
+            guest: () => !context.user,
+            user: () => context.user?.role === "role:user",
+            admin: () => context.user?.role === "role:admin",
         })
     },
     relay: {}
