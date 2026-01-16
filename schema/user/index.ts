@@ -1,4 +1,5 @@
 import { createGraphQLError } from "graphql-yoga";
+import { sign } from "jsonwebtoken";
 import { hash } from 'bcrypt';
 
 import { builder } from "../../builder";
@@ -49,6 +50,16 @@ public_user_ref.implement({
     })
 });
 
+const cookie_fields = (value: string) => ({
+    name: 'session_id',
+    value,
+    // secure: false,
+    sameSite: 'none' as const,
+    domain: 'localhost',
+    // httpOnly: false,
+    expires: new Date(Date.now() + 3600 * 1000).getTime()
+});
+
 builder.mutationField('create_user', t =>
     t.field({
         type: public_user_ref,
@@ -58,15 +69,19 @@ builder.mutationField('create_user', t =>
             password: t.arg.string({ required: true }),
             role: t.arg.string()
         },
-        resolve: async (_parent, args, _ctx) => {
+        resolve: async (_parent, args, ctx) => {
             const { name, email, password, role } = args;
             if (role === null) throw createGraphQLError('Role is required.', { extensions: { http: { status: 400 } } });
 
             const email_found = await user.findOne({ email });
-            if (email_found) throw createGraphQLError('E-mail already used', { extensions: { http: { status: 400 } } });
+            if (email_found) throw createGraphQLError('E-mail already used.', { extensions: { http: { status: 400 } } });
 
             const hashed_password = await hash(password, 10);
             const new_user = await user.build({ name, email, password: hashed_password, role }).save();
+
+            const { role: new_user_role, email: new_user_email } = new_user;
+            const payload = sign({ role: new_user_role, email: new_user_email }, 'SUPER_SECRET');
+            await ctx.request.cookieStore?.set(cookie_fields(payload));
 
             return new_user;
         }
