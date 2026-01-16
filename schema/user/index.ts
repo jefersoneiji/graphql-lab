@@ -1,6 +1,6 @@
 import { createGraphQLError } from "graphql-yoga";
+import { compare, hash } from 'bcrypt';
 import { sign } from "jsonwebtoken";
-import { hash } from 'bcrypt';
 
 import { builder } from "../../builder";
 import { user } from "./model";
@@ -84,6 +84,30 @@ builder.mutationField('create_user', t =>
             await ctx.request.cookieStore?.set(cookie_fields(payload));
 
             return new_user;
+        }
+    })
+);
+
+builder.mutationField('login', t =>
+    t.field({
+        type: public_user_ref,
+        args: {
+            email: t.arg.string({ required: true }),
+            password: t.arg.string({ required: true }),
+        },
+        resolve: async (_parent, args, ctx) => {
+            const { email, password } = args;
+            const user_found = await user.findOne({ email });
+            if (!user_found) throw createGraphQLError('Invalid credentials.', { extensions: { http: { status: 400 } } });
+            
+            const password_correct = await compare(password, user_found.password);
+            if (!password_correct) throw createGraphQLError('Invalid credentials.', { extensions: { http: { status: 400 } } });
+
+            const { role: new_user_role, email: new_user_email } = user_found;
+            const payload = sign({ role: new_user_role, email: new_user_email }, 'SUPER_SECRET');
+            await ctx.request.cookieStore?.set(cookie_fields(payload));
+
+            return user_found;
         }
     })
 );

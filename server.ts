@@ -8,11 +8,8 @@ import { user } from "./schema/user/model";
 import { public_user } from "./builder";
 import { schema } from "./schema";
 
-// TODO: CHECK PASSWORD ON LOGIN
 // TODO: CHECK ROLE BEFORE STORING IT
 // TODO: PREVENT UNAUTHORIZED PEOPLE TO ATTRIBUTE ROLE:ADMIN TO THEMSELVES
-// TODO: GENERATE COOKIE ON SIGNUP 
-// TODO: GENERATE COOKIE ON LOGIN
 // TODO: INVALIDATE COOKIE ON LOGOUT
 // TODO: CHECK IF IT'S NECESSARY TO IMPLEMENT A REFRESH TOKEN
 type current_user = public_user & { role: string; };
