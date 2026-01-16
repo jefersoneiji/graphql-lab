@@ -8,8 +8,13 @@ import { user } from "./schema/user/model";
 import { public_user } from "./builder";
 import { schema } from "./schema";
 
-
-// TODO: STORE ROLE TO EACH USER
+// TODO: ADD ROLE OPTION TO SIGNUP
+// TODO: HASH PASSWORDS ON SIGNUP
+// TODO: CHECK ROLE BEFORE STORING IT
+// TODO: PREVENT UNAUTHORIZED PEOPLE TO ATTRIBUTE ROLE:ADMIN TO THEMSELVES
+// TODO: GENERATE COOKIE ON SIGNUP 
+// TODO: GENERATE COOKIE ON LOGIN
+// TODO: INVALIDATE COOKIE ON LOGOUT
 type current_user = public_user & { role: string; };
 
 async function get_user_from_cookie(request: Request): Promise<current_user | null> {

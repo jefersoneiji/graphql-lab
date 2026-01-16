@@ -6,6 +6,7 @@ export interface user_interface {
     name: string;
     email: string;
     password: string;
+    role: string;
 }
 
 export const user_ref = builder.objectRef<user_interface>('user');
@@ -15,7 +16,8 @@ user_ref.implement({
     fields: t => ({
         name: t.exposeString('name', { nullable: false, description: 'user name' }),
         email: t.exposeString('email', { nullable: false, description: 'user e-mail' }),
-        password: t.exposeString('password', { nullable: false, description: 'user password' })
+        password: t.exposeString('password', { nullable: false, description: 'user password' }),
+        role: t.exposeString('role', { nullable: false, description: 'user role' })
     })
 });
 
@@ -51,20 +53,19 @@ builder.mutationField('create_user', t =>
         args: {
             name: t.arg.string({ required: true }),
             email: t.arg.string({ required: true }),
-            password: t.arg.string({ required: true })
+            password: t.arg.string({ required: true }),
+            role: t.arg.string()
         },
         resolve: async (_parent, args, _ctx) => {
-            const { name, email, password } = args;
+            const { name, email, password, role } = args;
+            if (role === null) throw createGraphQLError('Role is required.', { extensions: { http: { status: 400 } } });
 
             const email_found = await user.findOne({ email });
             if (email_found) throw createGraphQLError('E-mail already used', { extensions: { http: { status: 400 } } });
 
-            await user.build({ name, email, password }).save();
+            const new_user = await user.build({ name, email, password, role }).save();
 
-            return {
-                name: args.name,
-                email: args.email
-            };
+            return new_user;
         }
     })
 );
