@@ -8,7 +8,6 @@ import { user } from "./schema/user/model";
 import { public_user } from "./builder";
 import { schema } from "./schema";
 
-// TODO: CHECK ROLE BEFORE STORING IT
 // TODO: PREVENT UNAUTHORIZED PEOPLE TO ATTRIBUTE ROLE:ADMIN TO THEMSELVES
 // TODO: CHECK IF IT'S NECESSARY TO IMPLEMENT A REFRESH TOKEN
 // TODO: IMPLEMENT JWT INVALIDATION/BLACK LISTING ON LOGOUT

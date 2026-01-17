@@ -7,6 +7,8 @@ interface user_model extends mongoose.Model<user_doc> {
     build(attrs: MakePropertiesOptional<user_interface, 'role'>): user_doc;
 }
 
+const roles = ['role:admin', 'role:user'];
+
 interface user_doc extends mongoose.Document {
     name: string;
     email: string;
@@ -18,7 +20,7 @@ const user_schema = new mongoose.Schema({
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    role: { type: String, default: 'role:user' },
+    role: { type: String, enum: roles, default: 'role:user' },
 }, {
     toJSON: {
         transform(_doc, ret) {

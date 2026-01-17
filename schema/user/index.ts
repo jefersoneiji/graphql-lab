@@ -60,6 +60,13 @@ const cookie_fields = (value: string) => ({
     expires: new Date(Date.now() + 3600 * 1000).getTime()
 });
 
+const roles_enum = builder.enumType('roles', {
+    values: {
+        ADMIN: { value: 'role:admin' },
+        USER: { value: 'role:user' }
+    } as const
+});
+
 builder.mutationField('create_user', t =>
     t.field({
         type: public_user_ref,
@@ -67,7 +74,7 @@ builder.mutationField('create_user', t =>
             name: t.arg.string({ required: true }),
             email: t.arg.string({ required: true }),
             password: t.arg.string({ required: true }),
-            role: t.arg.string()
+            role: t.arg({ type: roles_enum })
         },
         resolve: async (_parent, args, ctx) => {
             const { name, email, password, role } = args;

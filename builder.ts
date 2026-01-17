@@ -9,7 +9,7 @@ import { user_interface } from "./schema/user";
 export type public_user = Omit<user_interface, 'password'>;
 
 interface Context extends YogaInitialContext {
-    request: YogaInitialContext['request']
+    request: YogaInitialContext['request'] & { cookieStore?: CookieStore; };
     user: (public_user & { role: string; }) | null;
 }
 
