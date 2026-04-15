@@ -1,0 +1,41 @@
+metricbeat.modules:
+  - module: elasticsearch
+    xpack.enabled: true
+    metricsets: 
+      - ingest_pipeline
+      - node
+      - node_stats
+      - index
+      - index_recovery
+      - index_summary
+      - shard
+    period: 10s
+    hosts: ['${ELASTIC_HOST}', 'https://es02:9200', 'https://es03:9200']
+    username: "elastic"
+    password: '${ELASTIC_PASSWORD}'
+    ssl.verification_mode: "none"
+
+  - module: beat
+    xpack.enabled: true
+    metricsets:
+      - stats
+      - state
+    period: 10s
+    hosts: ['${FILEBEAT_HOST}','${HEARTBEAT_HOST}','${APM_MONITOR}']
+  
+  - module: kibana
+    xpack.enabled: true
+    metricsets:
+      - stats
+    period: 10s
+    hosts: '${KIBANA_HOST}'
+    username: "elastic"
+    password: '${ELASTIC_PASSWORD}'
+    ssl.verification_mode: "none"
+
+output.elasticsearch:
+  hosts: '${ELASTIC_HOST}'
+  protocol: "https"
+  username: "elastic"
+  password: '${ELASTIC_PASSWORD}'
+  ssl.verification_mode: "none"

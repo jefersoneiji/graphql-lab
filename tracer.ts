@@ -1,8 +1,8 @@
 import { BatchSpanProcessor, ConsoleSpanExporter, SimpleSpanProcessor } from '@opentelemetry/sdk-trace-base'
 import { diag, DiagConsoleLogger, DiagLogLevel, trace } from '@opentelemetry/api'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
-import { HttpInstrumentation } from '@opentelemetry/instrumentation-http'
 import { registerInstrumentations } from '@opentelemetry/instrumentation'
+import { HttpInstrumentation } from '@opentelemetry/instrumentation-http'
 import { NodeTracerProvider } from '@opentelemetry/sdk-trace-node'
 
 const elastic_exporter = new OTLPTraceExporter({

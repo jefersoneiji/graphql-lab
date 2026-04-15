@@ -1,0 +1,26 @@
+http:
+  enabled: true
+  host: 0.0.0.0
+  port: '${HB_PORT}'
+
+monitoring.enabled: false
+
+logging.level: debug
+
+heartbeat.monitors: 
+  - type: http
+    id: service-status
+    schedule: '@every 5s'
+    hosts: ['${ELASTIC_HOST}','${KIBANA_HOST}']
+    ssl.verification_mode: "none"
+
+setup.kibana:
+  host: '${KIBANA_HOST}'
+  username: '${KIBANA_USERNAME}'
+  password: '${KIBANA_PASSWORD}'
+
+output.elasticsearch:
+  hosts: '${ELASTIC_HOST}'
+  username: "elastic"
+  password: '${ELASTIC_PASSWORD}'
+  ssl.verification_mode: "none"

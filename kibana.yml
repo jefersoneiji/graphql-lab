@@ -1,0 +1,8 @@
+monitoring.kibana.collection.enabled: false
+
+elasticsearch:
+  hosts: ['${ELASTICSEARCH_HOSTS}']
+  username: '${ELASTICSEARCH_USERNAME}'
+  password: '${ELASTICSEARCH_PASSWORD}
+  ssl.verificationMode: full
+  ssl.certificateAuthorities: '${ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES}'

@@ -1,0 +1,26 @@
+http:
+  enabled: true
+  host: 0.0.0.0
+  port: '${FB_PORT}'
+
+monitoring.enabled: false
+
+filebeat.inputs:
+- type: filestream
+  enabled: true
+  id: my-filebeat-collector
+  paths:
+    - /var/log/log.json
+  parsers:
+    - ndjson:
+      overwrite_keys: true
+      add_error_key: true
+      expand_keys: true
+
+logging.level: debug
+
+output.elasticsearch:
+  hosts: '${ELASTIC_HOST}'
+  username: "elastic"
+  password: '${ELASTIC_PASSWORD}'
+  ssl.verification_mode: "none"
