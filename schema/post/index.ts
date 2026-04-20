@@ -93,7 +93,7 @@ builder.queryField('posts', t =>
             };
 
             const posts = await post.find(query).sort({ _id: 'asc' }).exec();
-
+            
             const result = await resolveCursorConnection({ args, toCursor: post => btoa(post.id) }, async () => connection_slice(posts, args));
             return { ...result, totalCount: result.edges.length };
         }

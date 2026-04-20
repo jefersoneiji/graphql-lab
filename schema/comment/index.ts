@@ -2,12 +2,13 @@ import { createGraphQLError } from "graphql-yoga";
 
 import { public_user_ref, user_interface } from "../user";
 import { post_interface, post_ref } from "../post";
-import { author_loader } from "./loader";
+import { author_loader, comments_loader } from "./loader";
 import { builder } from "../../builder";
 import { post } from "../post/model";
 import { comment } from "./model";
 
 export interface comment_interface {
+    id: string;
     author: string;
     post: string;
     content: string;
@@ -17,8 +18,10 @@ export interface comment_interface {
 export const comment_ref = builder.objectRef<comment_interface>('comment');
 
 // REPLY TO COMMENT FEATURE
-comment_ref.implement({
-    description: 'post comment',
+builder.node(comment_ref, {
+    id: { resolve: comment => comment.id },
+    loadOne: async id => await comment.findById(id),
+    loadMany: async ids => await comment.find({ _id: { $in: ids } }),
     fields: t => ({
         author: t.field({
             type: public_user_ref,
@@ -36,6 +39,16 @@ comment_ref.implement({
         created_at: t.expose('created_at', { type: 'Date', nullable: false, description: 'created at timestamp' })
     })
 });
+
+builder.queryField('comments', t =>
+    t.field({
+        type: [comment_ref],
+        resolve: async (_parent, _args, _ctx) => {
+           const comments = await comments_loader.load("")
+            return comments;
+        }
+    })
+);
 
 builder.queryField('comment', t =>
     t.field({

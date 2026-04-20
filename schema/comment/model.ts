@@ -2,10 +2,11 @@ import mongoose from "mongoose";
 import { comment_interface } from ".";
 
 interface comment_model extends mongoose.Model<comment_doc> {
-    build(attrs: comment_interface): comment_doc;
+    build(attrs: Omit<comment_interface, 'id'>): comment_doc;
 }
 
 interface comment_doc extends mongoose.Document {
+    id: string;
     author: string;
     post: string;
     content: string;
@@ -21,13 +22,13 @@ const comment_schema = new mongoose.Schema({
     toJSON: {
         transform(_doc, ret) {
             const { _id, __v, ...clean } = ret;
-            return clean;
+            return { ...clean, id: _id };
         },
     },
     toObject: {
         transform(_doc, ret) {
             const { _id, __v, ...clean } = ret;
-            return clean;
+            return { ...clean, id: _id };
         },
     },
 });
