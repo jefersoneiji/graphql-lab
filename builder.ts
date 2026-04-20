@@ -1,13 +1,11 @@
-import { createOpenTelemetryWrapper } from '@pothos/tracing-opentelemetry'
-import TracingPlugin, { isRootField } from '@pothos/plugin-tracing'
 import ScopeAuthPlugin from '@pothos/plugin-scope-auth';
+import ComplexityPlugin from '@pothos/plugin-complexity';
 import RelayPlugin from "@pothos/plugin-relay";
 import SchemaBuilder from "@pothos/core";
 
 import { DateTimeResolver } from "graphql-scalars";
 import { YogaInitialContext } from "graphql-yoga";
 import { user_interface } from "./schema/user";
-import { tracer } from './tracer';
 
 export type public_user = Omit<user_interface, 'password'>;
 
@@ -34,20 +32,12 @@ interface builder {
     };
 }
 
-const create_span = createOpenTelemetryWrapper(tracer, {
-    includeSource: true
-})
-
 export const builder = new SchemaBuilder<builder>({
     plugins: [
-        TracingPlugin,
+        ComplexityPlugin,
         RelayPlugin,
         ScopeAuthPlugin
     ],
-    tracing: {
-        default: config => isRootField(config),
-        wrap: (resolver, options) => create_span(resolver, options)
-    },
     scopeAuth: {
         authScopes: async context => ({
             guest: () => !context.user,
@@ -55,7 +45,15 @@ export const builder = new SchemaBuilder<builder>({
             admin: () => context.user?.role === "role:admin",
         })
     },
-    relay: {}
+    relay: {},
+    complexity: {
+        defaultComplexity: 1,
+        defaultListMultiplier: 10,
+        limit: {
+            complexity: 500,
+        },
+
+    }
 });
 
 builder.addScalarType('Date', DateTimeResolver);

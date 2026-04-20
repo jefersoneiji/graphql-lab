@@ -10,8 +10,11 @@ apm-server:
   rum: 
     enabled: true
     allow_origins: ['*']
-    
-
+  otlp:
+    enabled: true
+  auth:
+    anonymous:
+      enabled: true  # dev only
 
 logging.level: debug
 

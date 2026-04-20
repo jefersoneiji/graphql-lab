@@ -38,10 +38,13 @@ const batch_comment = async (ids: readonly string[]): Promise<comment_interface[
         { $sort: { "__order": 1 } },
         { $project: { "__order": 0 } },
         { $group: { _id: "$post", comments: { $push: "$$ROOT" } } },
-        { $project: { _id: 0, comments: "$comments" } },
+        { $project: { _id: 0 } },
     ]).exec();
 
-    return Promise.resolve(ordered_docs.map(elem => elem.comments));
+    const no_comments = ordered_docs.map(elem => elem.comments);
+    const mapped = ids.map((_elem, idx) => no_comments[idx] || []);
+
+    return Promise.resolve(mapped);
 };
 
 export const comment_loader = new DataLoader<string, comment_interface[]>(keys => batch_comment(keys));

@@ -1,6 +1,5 @@
 import { resolveCursorConnection } from "@pothos/plugin-relay";
 import { createGraphQLError } from "graphql-yoga";
-import { sign } from 'jsonwebtoken';
 import mongoose from "mongoose";
 
 import { author_loader, comment_loader } from "./loader";

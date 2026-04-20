@@ -1,30 +1,24 @@
-import { BatchSpanProcessor, ConsoleSpanExporter, SimpleSpanProcessor } from '@opentelemetry/sdk-trace-base'
-import { diag, DiagConsoleLogger, DiagLogLevel, trace } from '@opentelemetry/api'
-import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
-import { registerInstrumentations } from '@opentelemetry/instrumentation'
-import { HttpInstrumentation } from '@opentelemetry/instrumentation-http'
-import { NodeTracerProvider } from '@opentelemetry/sdk-trace-node'
+import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto';
+import { ATTR_SERVICE_NAME } from '@opentelemetry/semantic-conventions';
+import { NodeTracerProvider } from '@opentelemetry/sdk-trace-node';
+import { BatchSpanProcessor } from '@opentelemetry/sdk-trace-base';
+import { resourceFromAttributes } from '@opentelemetry/resources';
+
+
 
 const elastic_exporter = new OTLPTraceExporter({
-    url: 'https://my-apm-server:8200/v1/traces',
-    headers: {
-        Authorization: 'Bearer TOKEN_HERE'
-    }
-})
+    url: 'http://localhost:8200/v1/traces',
+    // headers: {
+    //     Authorization: 'Bearer SOME_SECRET_TOKEN_HERE',
+    //     'Content-Type': 'application/x-protobuf'
+    // }
+});
 
-const provider = new NodeTracerProvider({
+export const provider = new NodeTracerProvider({
     spanProcessors: [
         new BatchSpanProcessor(elastic_exporter),
-        new SimpleSpanProcessor(new ConsoleSpanExporter())
-    ]
-})
-
-provider.register()
-
-registerInstrumentations({
-    instrumentations: [new HttpInstrumentation({})]
-})
-
-diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.INFO)
-
-export const tracer = trace.getTracer('graphql')
+    ],
+    resource: resourceFromAttributes({
+        [ATTR_SERVICE_NAME]: 'graphql-lab',
+    }),
+});

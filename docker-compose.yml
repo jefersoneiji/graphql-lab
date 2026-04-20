@@ -76,7 +76,7 @@ services:
     command: filebeat -e --strict.perms=false
     volumes:
       - "./filebeat.yml:/usr/share/filebeat/filebeat.yml:ro"
-      - "../infra/logs/log.json:/var/log/log.json"
+      # - "../infra/logs/log.json:/var/log/log.json"
       - certs:/usr/share/filebeat/config/certs
     ports:
       - ${FB_PORT}:5066

@@ -1,4 +1,5 @@
 import { useCookies } from "@whatwg-node/server-plugin-cookies";
+import { useOpenTelemetry } from '@envelop/opentelemetry';
 import { createYoga } from "graphql-yoga";
 import { createServer } from 'node:http';
 import { verify } from "jsonwebtoken";
@@ -6,6 +7,7 @@ import mongoose from "mongoose";
 
 import { user } from "./schema/user/model";
 import { public_user } from "./builder";
+import { provider } from "./tracer";
 import { schema } from "./schema";
 
 // TODO: PREVENT UNAUTHORIZED PEOPLE TO ATTRIBUTE ROLE:ADMIN TO THEMSELVES
@@ -30,7 +32,17 @@ async function get_user_from_cookie(request: Request): Promise<current_user | nu
 
 const yoga = createYoga({
     schema,
-    plugins: [useCookies()],
+    plugins: [
+        useCookies(),
+        useOpenTelemetry(
+            {
+                resolvers: true,
+                variables: true,
+                result: false,
+            },
+            provider,
+        ),
+    ],
     context: async (context) => {
         const user = await get_user_from_cookie(context.request);
         return { ...context, user };
