@@ -1,5 +1,6 @@
 import ScopeAuthPlugin from '@pothos/plugin-scope-auth';
 import ComplexityPlugin from '@pothos/plugin-complexity';
+import DataLoaderPlugin from '@pothos/plugin-dataloader'
 import RelayPlugin from "@pothos/plugin-relay";
 import SchemaBuilder from "@pothos/core";
 
@@ -35,6 +36,7 @@ interface builder {
 export const builder = new SchemaBuilder<builder>({
     plugins: [
         ComplexityPlugin,
+        DataLoaderPlugin, 
         RelayPlugin,
         ScopeAuthPlugin
     ],
@@ -50,7 +52,7 @@ export const builder = new SchemaBuilder<builder>({
         defaultComplexity: 1,
         defaultListMultiplier: 10,
         limit: {
-            complexity: 500,
+            complexity: 2000,
         },
 
     }

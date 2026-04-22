@@ -1,11 +1,11 @@
 import { createGraphQLError } from "graphql-yoga";
 
-import { public_user_ref, user_interface } from "../user";
+import { public_user_ref } from "../user";
 import { post_interface, post_ref } from "../post";
-import { author_loader, comments_loader } from "./loader";
-import { builder } from "../../builder";
+import { builder, public_user } from "../../builder";
 import { post } from "../post/model";
 import { comment } from "./model";
+import { user } from "../user/model";
 
 export interface comment_interface {
     id: string;
@@ -23,17 +23,25 @@ builder.node(comment_ref, {
     loadOne: async id => await comment.findById(id),
     loadMany: async ids => await comment.find({ _id: { $in: ids } }),
     fields: t => ({
-        author: t.field({
+        author: t.loadable({
             type: public_user_ref,
             nullable: false,
             description: 'comment author',
-            resolve: async (comment, _args, _ctx) => author_loader.load(comment.author) as Promise<user_interface>
+            load: async (ids: string[]) => {
+                const authors = await user.find({ _id: { $in: ids } }) as public_user[]
+                return authors
+            },
+            resolve: async (comment, _args, _ctx) => comment.author
         }),
-        post: t.field({
+        post: t.loadable({
             type: post_ref,
             nullable: false,
             description: 'post',
-            resolve: async (comment, _args, _ctx) => await post.findById(comment.post) as post_interface
+            load: async (ids: string[]) => {
+                const posts = await post.find({ _id: { $in: ids } }) as post_interface[]
+                return posts
+            },
+            resolve: async (comment, _args, _ctx) => comment.post
         }),
         content: t.exposeString('content', { nullable: false, description: 'comment content' }),
         created_at: t.expose('created_at', { type: 'Date', nullable: false, description: 'created at timestamp' })
@@ -44,7 +52,7 @@ builder.queryField('comments', t =>
     t.field({
         type: [comment_ref],
         resolve: async (_parent, _args, _ctx) => {
-           const comments = await comments_loader.load("")
+            const comments = await comment.find({})
             return comments;
         }
     })

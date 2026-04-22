@@ -2,8 +2,8 @@ import { resolveCursorConnection } from "@pothos/plugin-relay";
 import { createGraphQLError } from "graphql-yoga";
 import mongoose from "mongoose";
 
-import { author_loader, comment_loader } from "./loader";
-import { public_user_ref, user_interface } from "../user";
+import { comment } from "../comment/model";
+import { public_user_ref } from "../user";
 import { comment_ref } from "../comment";
 import { builder } from "../../builder";
 import { user } from "../user/model";
@@ -28,15 +28,28 @@ builder.node(post_ref, {
     fields: t => ({
         title: t.exposeString('title', { nullable: false, description: 'post title' }),
         link: t.exposeString('link', { nullable: false, description: 'post link' }),
-        author: t.field({
+        author: t.loadable({
             type: public_user_ref,
             nullable: false,
-            resolve: async (post, _args, _ctx) => author_loader.load(post.author) as Promise<user_interface>
+            load: async (ids: string[]) => {
+                const authors = await user.find({ _id: { $in: ids } })
+                return ids.map(id => {
+                    const found = authors.find(a => a._id.toString() === id.toString());
+                    if (!found) throw new Error(`User not found: ${id}`);
+                    return found;
+                });
+            },
+            resolve: async (post, _args, _ctx) => post.author
         }),
-        comments: t.field({
-            type: [comment_ref],
+        comments: t.loadableList({
+            type: comment_ref,
             nullable: false,
-            resolve: async (post, _args, _ctx) => comment_loader.load(post.id)
+            load: async (ids: string[], _ctx) => {
+                const allComments = await comment.find({ post: { $in: ids } });
+                const groupedComments = ids.map(id => allComments.filter(c => c.post.toString() === id));
+                return groupedComments;
+            },
+            resolve: (post) => post.id
         }),
         created_at: t.expose('created_at', { type: 'Date', nullable: false })
     })
@@ -93,7 +106,7 @@ builder.queryField('posts', t =>
             };
 
             const posts = await post.find(query).sort({ _id: 'asc' }).exec();
-            
+
             const result = await resolveCursorConnection({ args, toCursor: post => btoa(post.id) }, async () => connection_slice(posts, args));
             return { ...result, totalCount: result.edges.length };
         }
