@@ -1,6 +1,7 @@
 import ScopeAuthPlugin from '@pothos/plugin-scope-auth';
 import ComplexityPlugin from '@pothos/plugin-complexity';
 import DataLoaderPlugin from '@pothos/plugin-dataloader'
+import ErrorsPlugin from '@pothos/plugin-errors';
 import RelayPlugin from "@pothos/plugin-relay";
 import SchemaBuilder from "@pothos/core";
 
@@ -35,8 +36,9 @@ interface builder {
 
 export const builder = new SchemaBuilder<builder>({
     plugins: [
+        ErrorsPlugin,
         ComplexityPlugin,
-        DataLoaderPlugin, 
+        DataLoaderPlugin,
         RelayPlugin,
         ScopeAuthPlugin
     ],
@@ -54,9 +56,48 @@ export const builder = new SchemaBuilder<builder>({
         limit: {
             complexity: 2000,
         },
-
+    },
+    errors: {
+        defaultTypes: [Error]
     }
 });
+
+const ErrorInterface = builder.interfaceRef<Error>('Error').implement({
+    fields: t => ({
+        message: t.exposeString('message'),
+    })
+})
+
+builder.objectType(Error, {
+    name: "BaseError",
+    fields: t => ({ message: t.exposeString('message') }),
+    interfaces: [ErrorInterface]
+})
+export class BadRequestError extends Error {
+    constructor(message: string = 'Bad request.') {
+        super(message);
+        this.name = 'BadRequestError';
+    }
+}
+
+builder.objectType(BadRequestError, {
+    name: "BadRequestError",
+    fields: t => ({ message: t.exposeString('message'), code: t.string({ resolve: () => '400' }) }),
+    interfaces: [ErrorInterface],
+})
+
+export class NotFoundError extends Error {
+    constructor(message: string = 'Not found.') {
+        super(message);
+        this.name = 'NotFoundError';
+    }
+}
+
+builder.objectType(NotFoundError, {
+    name: "NotFoundError",
+    fields: t => ({ message: t.exposeString('message'), code: t.string({ resolve: () => '404' }) }),
+    interfaces: [ErrorInterface],
+})
 
 builder.addScalarType('Date', DateTimeResolver);
 

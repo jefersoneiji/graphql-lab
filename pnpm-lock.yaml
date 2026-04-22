@@ -29,6 +29,9 @@ importers:
       '@pothos/plugin-dataloader':
         specifier: ^4.4.3
         version: 4.4.3(@pothos/core@4.10.0(graphql@16.12.0))(dataloader@2.2.3)(graphql@16.12.0)
+      '@pothos/plugin-errors':
+        specifier: ^4.9.0
+        version: 4.9.0(@pothos/core@4.10.0(graphql@16.12.0))(graphql@16.12.0)
       '@pothos/plugin-relay':
         specifier: ^4.6.2
         version: 4.6.2(@pothos/core@4.10.0(graphql@16.12.0))(graphql@16.12.0)
@@ -252,6 +255,12 @@ packages:
     peerDependencies:
       '@pothos/core': '*'
       dataloader: '2'
+      graphql: ^16.10.0
+
+  '@pothos/plugin-errors@4.9.0':
+    resolution: {integrity: sha512-RargBiHpg+LTQb8VcpR3FHX0cSLR2+rpU70v1Hhj2caOoNOMP7J+T2Y9vyXqJo3d+DtchPBjtixZ3lkQ11S/wQ==}
+    peerDependencies:
+      '@pothos/core': '*'
       graphql: ^16.10.0
 
   '@pothos/plugin-relay@4.6.2':
@@ -728,6 +737,11 @@ snapshots:
     dependencies:
       '@pothos/core': 4.10.0(graphql@16.12.0)
       dataloader: 2.2.3
+      graphql: 16.12.0
+
+  '@pothos/plugin-errors@4.9.0(@pothos/core@4.10.0(graphql@16.12.0))(graphql@16.12.0)':
+    dependencies:
+      '@pothos/core': 4.10.0(graphql@16.12.0)
       graphql: 16.12.0
 
   '@pothos/plugin-relay@4.6.2(@pothos/core@4.10.0(graphql@16.12.0))(graphql@16.12.0)':
