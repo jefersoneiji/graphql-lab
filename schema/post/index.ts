@@ -34,7 +34,7 @@ builder.node(post_ref, {
                 const authors = await user.find({ _id: { $in: ids } })
                 return ids.map(id => {
                     const found = authors.find(a => a._id.toString() === id.toString());
-                    if (!found) throw new Error(`User not found: ${id}`);
+                    if (!found) throw new NotFoundError(`User not found: ${id}`);
                     return found;
                 });
             },
@@ -58,6 +58,7 @@ builder.queryField('post', t =>
     t.field({
         type: post_ref,
         description: 'retrieves post by id',
+        authScopes: { guest: true },
         errors: {},
         args: {
             post_id: t.arg.globalID({ description: 'post id', required: true })
@@ -99,6 +100,7 @@ builder.queryField('posts', t =>
         type: post_ref,
         description: 'retrieves all posts',
         errors: {},
+        authScopes: { $any: { guest: true, admin: true, user: true } },
         resolve: async (_parent, args, _ctx) => {
             const query = {
                 ...(args.after && !args.before ? { _id: { $gt: args.after } } : {}),
@@ -119,6 +121,7 @@ builder.mutationField('post', t =>
         nullable: false,
         description: 'creates post',
         errors: {},
+        authScopes: { $any: { user: true, admin: true } },
         args: {
             title: t.arg.string({ required: true }),
             link: t.arg.string({ required: true }),

@@ -36,11 +36,11 @@ interface builder {
 
 export const builder = new SchemaBuilder<builder>({
     plugins: [
+        RelayPlugin,
+        ScopeAuthPlugin,
         ErrorsPlugin,
         ComplexityPlugin,
         DataLoaderPlugin,
-        RelayPlugin,
-        ScopeAuthPlugin
     ],
     scopeAuth: {
         authScopes: async context => ({

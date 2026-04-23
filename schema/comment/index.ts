@@ -2,7 +2,7 @@ import { createGraphQLError } from "graphql-yoga";
 
 import { public_user_ref } from "../user";
 import { post_interface, post_ref } from "../post";
-import { builder, public_user } from "../../builder";
+import { builder, NotFoundError, public_user } from "../../builder";
 import { post } from "../post/model";
 import { comment } from "./model";
 import { user } from "../user/model";
@@ -51,6 +51,8 @@ builder.node(comment_ref, {
 builder.queryField('comments', t =>
     t.field({
         type: [comment_ref],
+        errors: {},
+        authScopes: { $any: { guest: true, admin: true, user: true } },
         resolve: async (_parent, _args, _ctx) => {
             const comments = await comment.find({})
             return comments;
@@ -61,6 +63,8 @@ builder.queryField('comments', t =>
 builder.queryField('comment', t =>
     t.field({
         type: comment_ref,
+        errors: {},
+        authScopes: { $any: { guest: true, admin: true, user: true } },
         args: {
             comment: t.arg.id({ required: true })
         },
@@ -68,7 +72,7 @@ builder.queryField('comment', t =>
             const { comment: comment_id } = args;
 
             const comment_found = await comment.findById(comment_id);
-            if (!comment_found) throw createGraphQLError('Comment not found.', { extensions: { http: { status: 404 } } });
+            if (!comment_found) throw new NotFoundError('Comment not found.');
 
             return comment_found;
         }
@@ -78,6 +82,8 @@ builder.queryField('comment', t =>
 builder.mutationField('comment', t =>
     t.field({
         type: comment_ref,
+        errors: {},
+        authScopes: { $any: { admin: true, user: true } },
         args: {
             author: t.arg.id({ required: true }),
             content: t.arg.string({ required: true }),
@@ -87,7 +93,7 @@ builder.mutationField('comment', t =>
             const { author, content, post: post_id } = args;
 
             const post_found = await post.findById(post_id.id);
-            if (!post_found) throw createGraphQLError('Post not found.', { extensions: { http: { status: 404 } } });
+            if (!post_found) throw new NotFoundError('Post not found.');
 
             const now = new Date();
             const comment_created = await comment.build({ author, content, post: post_id.id, created_at: now }).save();

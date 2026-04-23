@@ -1,8 +1,7 @@
-import { createGraphQLError } from "graphql-yoga";
 import { compare, hash } from 'bcrypt';
 import { sign } from "jsonwebtoken";
 
-import { builder } from "../../builder";
+import { BadRequestError, builder, NotFoundError } from "../../builder";
 import { user } from "./model";
 
 export interface user_interface {
@@ -28,13 +27,14 @@ builder.queryField('user', t =>
     t.field({
         type: public_user_ref,
         authScopes: { $any: { user: true, admin: true } },
+        errors: {},
         args: {
             email: t.arg.string({ required: true })
         },
         resolve: async (_parent, args, _ctx) => {
             const { email } = args;
             const user_found = await user.findOne({ email });
-            if (!user_found) throw createGraphQLError('User not found.', { extensions: { http: { status: 404 } } });
+            if (!user_found) throw new NotFoundError('User not found.');
             return user_found;
         }
     })
@@ -63,13 +63,15 @@ const cookie_fields = (value: string) => ({
 const roles_enum = builder.enumType('roles', {
     values: {
         ADMIN: { value: 'role:admin' },
-        USER: { value: 'role:user' }
+        USER: { value: 'role:user' },
+        GUEST: { value: 'role:guest' }
     } as const
 });
 
 builder.mutationField('create_user', t =>
     t.field({
         type: public_user_ref,
+        errors: {},
         args: {
             name: t.arg.string({ required: true }),
             email: t.arg.string({ required: true }),
@@ -78,10 +80,10 @@ builder.mutationField('create_user', t =>
         },
         resolve: async (_parent, args, ctx) => {
             const { name, email, password, role } = args;
-            if (role === null) throw createGraphQLError('Role is required.', { extensions: { http: { status: 400 } } });
+            if (role === null) throw new BadRequestError('Role is required.');
 
             const email_found = await user.findOne({ email });
-            if (email_found) throw createGraphQLError('E-mail already used.', { extensions: { http: { status: 400 } } });
+            if (email_found) throw new BadRequestError('E-mail already used.')
 
             const hashed_password = await hash(password, 10);
             const new_user = await user.build({ name, email, password: hashed_password, role }).save();
@@ -98,6 +100,7 @@ builder.mutationField('create_user', t =>
 builder.mutationField('login', t =>
     t.field({
         type: public_user_ref,
+        errors: {},
         args: {
             email: t.arg.string({ required: true }),
             password: t.arg.string({ required: true }),
@@ -105,10 +108,10 @@ builder.mutationField('login', t =>
         resolve: async (_parent, args, ctx) => {
             const { email, password } = args;
             const user_found = await user.findOne({ email });
-            if (!user_found) throw createGraphQLError('Invalid credentials.', { extensions: { http: { status: 400 } } });
+            if (!user_found) throw new BadRequestError('Invalid credentials.');
 
             const password_correct = await compare(password, user_found.password);
-            if (!password_correct) throw createGraphQLError('Invalid credentials.', { extensions: { http: { status: 400 } } });
+            if (!password_correct) throw new BadRequestError('Invalid credentials.')
 
             const { role: new_user_role, email: new_user_email } = user_found;
             const payload = sign({ role: new_user_role, email: new_user_email }, 'SUPER_SECRET');
@@ -122,6 +125,8 @@ builder.mutationField('login', t =>
 builder.mutationField('logout', t =>
     t.field({
         type: 'Boolean',
+        errors: {},
+        authScopes: { $any: { admin: true, user: true } },
         resolve: async (_parent, _args, ctx) => {
             await ctx.request.cookieStore?.delete('session_id');
             return true;
