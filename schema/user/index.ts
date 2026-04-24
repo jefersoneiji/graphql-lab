@@ -13,6 +13,8 @@ export interface user_interface {
 
 export const user_ref = builder.objectRef<user_interface>('user');
 
+const BCRYPT_ROUNDS = process.env.NODE_ENV === 'test' ? 1 : 10;
+
 user_ref.implement({
     description: 'system user',
     fields: t => ({
@@ -83,9 +85,9 @@ builder.mutationField('create_user', t =>
             if (role === null) throw new BadRequestError('Role is required.');
 
             const email_found = await user.findOne({ email });
-            if (email_found) throw new BadRequestError('E-mail already used.')
+            if (email_found) throw new BadRequestError('E-mail already used.');
 
-            const hashed_password = await hash(password, 10);
+            const hashed_password = await hash(password, BCRYPT_ROUNDS);
             const new_user = await user.build({ name, email, password: hashed_password, role }).save();
 
             const { role: new_user_role, email: new_user_email } = new_user;
@@ -111,7 +113,7 @@ builder.mutationField('login', t =>
             if (!user_found) throw new BadRequestError('Invalid credentials.');
 
             const password_correct = await compare(password, user_found.password);
-            if (!password_correct) throw new BadRequestError('Invalid credentials.')
+            if (!password_correct) throw new BadRequestError('Invalid credentials.');
 
             const { role: new_user_role, email: new_user_email } = user_found;
             const payload = sign({ role: new_user_role, email: new_user_email }, 'SUPER_SECRET');
