@@ -1,0 +1,21 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`create user 1`] = `
+{
+  "create_user": {
+    "__typename": "MutationCreate_userSuccess",
+    "data": {
+      "email": "lim@email.com",
+      "name": "Lim",
+    },
+  },
+}
+`;
+
+exports[`should throw error for "e-mail already used" 1`] = `
+{
+  "create_user": {
+    "message": "E-mail already used.",
+  },
+}
+`;
