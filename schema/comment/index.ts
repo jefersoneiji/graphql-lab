@@ -1,5 +1,3 @@
-import { createGraphQLError } from "graphql-yoga";
-
 import { public_user_ref } from "../user";
 import { post_interface, post_ref } from "../post";
 import { builder, NotFoundError, public_user } from "../../builder";

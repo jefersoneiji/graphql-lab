@@ -1,19 +1,21 @@
 import ScopeAuthPlugin from '@pothos/plugin-scope-auth';
 import ComplexityPlugin from '@pothos/plugin-complexity';
 import DataLoaderPlugin from '@pothos/plugin-dataloader'
+import { DateTimeResolver } from "graphql-scalars";
+import { YogaInitialContext } from "graphql-yoga";
 import ErrorsPlugin from '@pothos/plugin-errors';
 import RelayPlugin from "@pothos/plugin-relay";
 import SchemaBuilder from "@pothos/core";
 
-import { DateTimeResolver } from "graphql-scalars";
-import { YogaInitialContext } from "graphql-yoga";
 import { user_interface } from "./schema/user";
+import { pubsub } from './server';
 
 export type public_user = Omit<user_interface, 'password'>;
 
 interface Context extends YogaInitialContext {
     request: YogaInitialContext['request'] & { cookieStore?: CookieStore; };
     user: (public_user & { role: string; }) | null;
+    pubsub: typeof pubsub
 }
 
 interface builder {

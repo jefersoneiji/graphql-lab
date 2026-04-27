@@ -1,8 +1,10 @@
 import { useCookies } from "@whatwg-node/server-plugin-cookies";
 import { useOpenTelemetry } from '@envelop/opentelemetry';
-import { createYoga } from "graphql-yoga";
+import { useServer } from 'graphql-ws/use/ws'
+import { createPubSub, createYoga } from "graphql-yoga";
 import { createServer } from 'node:http';
 import { verify } from "jsonwebtoken";
+import { WebSocketServer } from 'ws'
 import mongoose from "mongoose";
 
 import { user } from "./schema/user/model";
@@ -14,6 +16,9 @@ import { schema } from "./schema";
 // TODO: CHECK IF IT'S NECESSARY TO IMPLEMENT A REFRESH TOKEN
 // TODO: IMPLEMENT JWT INVALIDATION/BLACK LISTING ON LOGOUT
 type current_user = public_user & { role: string; };
+
+export type PubSubEvents = { 'VOTE_ADDED': [message: string] }
+export const pubsub = createPubSub<PubSubEvents>()
 
 async function get_user_from_cookie(request: Request): Promise<current_user | null> {
     const cookie = await request.cookieStore?.get('session_id');
@@ -31,6 +36,9 @@ async function get_user_from_cookie(request: Request): Promise<current_user | nu
 }
 
 const yoga = createYoga({
+    graphiql: {
+        subscriptionsProtocol: 'WS'
+    },
     schema,
     plugins: [
         useCookies(),
@@ -45,11 +53,48 @@ const yoga = createYoga({
     ],
     context: async (context) => {
         const user = await get_user_from_cookie(context.request);
-        return { ...context, user };
+        // return { ...context, user };
+        return { ...context, user, pubsub };
     }
 });
 
 const server = createServer(yoga);
+
+const ws_server = new WebSocketServer({
+    server,
+    path: yoga.graphqlEndpoint
+})
+
+useServer(
+    {
+        execute: (args) => (args.rootValue as { execute: Function }).execute(args),
+        subscribe: (args) => (args.rootValue as { subscribe: Function }).subscribe(args),
+        onSubscribe: async (ctx, _id, params) => {
+            const { schema, execute, subscribe, contextFactory, parse, validate } = yoga.getEnveloped({
+                ...ctx,
+                req: ctx.extra.request,
+                socket: ctx.extra.socket,
+                params
+            })
+
+            const args = {
+                schema,
+                operationName: params.operationName,
+                document: parse(params.query),
+                variableValues: params.variables,
+                contextValue: await contextFactory({ request: ctx.extra.request }),
+                rootValue: {
+                    execute,
+                    subscribe
+                }
+            }
+            const errors = validate(args.schema, args.document)
+            if (errors.length) return errors
+            return args
+        }
+    },
+    ws_server
+)
 
 mongoose.connect(process.env.MONGODB_URL || 'mongodb://admin:super_admin@localhost:27017/graphql-db?authSource=admin')
     .then(() => {
