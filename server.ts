@@ -1,7 +1,8 @@
+import { useResponseCache } from '@graphql-yoga/plugin-response-cache'
 import { useCookies } from "@whatwg-node/server-plugin-cookies";
 import { useOpenTelemetry } from '@envelop/opentelemetry';
-import { useServer } from 'graphql-ws/use/ws'
 import { createPubSub, createYoga } from "graphql-yoga";
+import { useServer } from 'graphql-ws/use/ws'
 import { createServer } from 'node:http';
 import { verify } from "jsonwebtoken";
 import { WebSocketServer } from 'ws'
@@ -50,10 +51,12 @@ const yoga = createYoga({
             },
             provider,
         ),
+        useResponseCache({
+            session: (ctx) => ctx.headers.get('authentication')
+        })
     ],
     context: async (context) => {
         const user = await get_user_from_cookie(context.request);
-        // return { ...context, user };
         return { ...context, user, pubsub };
     }
 });

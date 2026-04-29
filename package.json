@@ -13,6 +13,7 @@
   "packageManager": "pnpm@10.20.0",
   "dependencies": {
     "@envelop/opentelemetry": "^9.1.1",
+    "@graphql-yoga/plugin-response-cache": "^3.23.0",
     "@opentelemetry/exporter-trace-otlp-proto": "^0.215.0",
     "@opentelemetry/sdk-trace-node": "^2.7.0",
     "@opentelemetry/semantic-conventions": "^1.40.0",
